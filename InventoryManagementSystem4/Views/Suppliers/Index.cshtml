@@ -1,0 +1,38 @@
+﻿@{
+    ViewBag.Title = "Suppliers";
+}
+
+<h2>Suppliers</h2>
+
+@(Html.Kendo().Grid<InventoryManagementSystem4.Models.Supplier>()
+    .Name("suppliersGrid")
+    .Columns(columns =>
+    {
+        columns.Bound(s => s.SupplierName).Title("Supplier Name");
+        columns.Bound(s => s.ContactName).Title("Contact Name");
+        columns.Bound(s => s.ContactTitle).Title("Contact Title");
+        columns.Bound(s => s.Address).Title("Address");
+        columns.Bound(s => s.City).Title("City");
+        columns.Bound(s => s.PostalCode).Title("Postal Code");
+        columns.Bound(s => s.Country).Title("Country");
+        columns.Bound(s => s.Phone).Title("Phone");
+        columns.Command(command => { command.Edit(); command.Destroy(); }).Title("Commands");
+    })
+    .ToolBar(toolbar => toolbar.Create())
+    .Editable(editable => editable.Mode(GridEditMode.PopUp))
+    .Pageable()
+    .Sortable()
+    .Filterable()
+    .DataSource(dataSource => dataSource
+        .Ajax()
+        .PageSize(20)
+        .Model(model =>
+        {
+            model.Id(s => s.SupplierID);
+        })
+        .Read(read => read.Action("Suppliers_Read", "Suppliers"))
+        .Create(create => create.Action("Suppliers_Create", "Suppliers"))
+        .Update(update => update.Action("Suppliers_Update", "Suppliers"))
+        .Destroy(destroy => destroy.Action("Suppliers_Destroy", "Suppliers"))
+    )
+)

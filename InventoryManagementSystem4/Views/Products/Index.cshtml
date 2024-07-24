@@ -1,0 +1,31 @@
+﻿<h2>Products</h2>
+@(Html.Kendo().Grid<InventoryManagementSystem4.Models.Product>()
+    .Name("productsGrid")
+    .Columns(columns =>
+    {
+        columns.Bound(p => p.ProductName).Title("Product Name");
+        columns.Bound(p => p.Category.CategoryName).Title("Category");
+        columns.Bound(p => p.Supplier.SupplierName).Title("Supplier");
+        columns.Bound(p => p.QuantityPerUnit).Title("Quantity Per Unit");
+        columns.Bound(p => p.UnitPrice).Title("Unit Price");
+        columns.Bound(p => p.UnitsInStock).Title("Units In Stock");
+        columns.Command(command => { command.Edit(); command.Destroy(); }).Title("Commands");
+    })
+    .ToolBar(toolbar => toolbar.Create())
+    .Editable(editable => editable.Mode(GridEditMode.PopUp))
+    .Pageable()
+    .Sortable()
+    .Filterable()
+    .DataSource(dataSource => dataSource
+        .Ajax()
+        .PageSize(20)
+        .Model(model =>
+        {
+            model.Id(p => p.ProductID);
+        })
+        .Read(read => read.Action("Read", "Products"))
+        .Create(create => create.Action("Create", "Products"))
+        .Update(update => update.Action("Update", "Products"))
+        .Destroy(destroy => destroy.Action("Destroy", "Products"))
+    )
+)

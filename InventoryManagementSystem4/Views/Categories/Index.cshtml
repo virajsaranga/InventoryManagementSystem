@@ -1,0 +1,26 @@
+﻿<h2>Categories</h2>
+@(Html.Kendo().Grid<InventoryManagementSystem4.Models.Category>()
+    .Name("CategoryGrid")
+    .Columns(columns =>
+    {
+        columns.Bound(c => c.CategoryName).Title("Category Name");
+        columns.Command(command => { command.Edit(); command.Destroy(); }).Title("Commands");
+    })
+    .ToolBar(toolbar => toolbar.Create())
+    .Editable(editable => editable.Mode(GridEditMode.PopUp))
+    .Pageable()
+    .Sortable()
+    .Filterable()
+    .DataSource(dataSource => dataSource
+        .Ajax()
+        .PageSize(20)
+        .Model(model =>
+        {
+            model.Id(c => c.CategoryID);
+        })
+        .Read(read => read.Action("Categories_Read", "Categories"))
+        .Create(create => create.Action("Categories_Create", "Categories"))
+        .Update(update => update.Action("Categories_Update", "Categories"))
+        .Destroy(destroy => destroy.Action("Categories_Destroy", "Categories"))
+    )
+)
