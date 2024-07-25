@@ -18,7 +18,7 @@ namespace InventoryManagementSystem4.Models
         [StringLength(100)]
         public string CategoryName { get; set; }
 
-       
+        public virtual ICollection<Product> Products { get; set; }
 
     }
 }

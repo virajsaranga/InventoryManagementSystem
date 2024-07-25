@@ -1,6 +1,7 @@
 ﻿using System;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using Newtonsoft.Json;
 
 namespace InventoryManagementSystem4.Models
 {
@@ -32,7 +33,9 @@ namespace InventoryManagementSystem4.Models
         public int UnitsInStock { get; set; }
 
         // Navigation properties
+        [JsonIgnore]
         public virtual Category Category { get; set; }
+        [JsonIgnore]
         public virtual Supplier Supplier { get; set; }
     }
 }

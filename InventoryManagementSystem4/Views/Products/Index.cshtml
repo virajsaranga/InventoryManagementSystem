@@ -1,27 +1,31 @@
-﻿<h2>Products</h2>
-@(Html.Kendo().Grid<InventoryManagementSystem4.Models.Product>()
-    .Name("productsGrid")
+﻿@(Html.Kendo().Grid<InventoryManagementSystem4.DTOs.ProductDTO>()
+    .Name("grid")
     .Columns(columns =>
     {
+        columns.Bound(p => p.ProductID).Hidden();
         columns.Bound(p => p.ProductName).Title("Product Name");
-        columns.Bound(p => p.Category.CategoryName).Title("Category");
-        columns.Bound(p => p.Supplier.SupplierName).Title("Supplier");
+        columns.ForeignKey(p => p.CategoryID, (IEnumerable<dynamic>)ViewData["categories"], "CategoryID", "CategoryName").Title("Category");
+        columns.ForeignKey(p => p.SupplierID, (IEnumerable<dynamic>)ViewData["suppliers"], "SupplierID", "SupplierName").Title("Supplier");
         columns.Bound(p => p.QuantityPerUnit).Title("Quantity Per Unit");
-        columns.Bound(p => p.UnitPrice).Title("Unit Price");
+        columns.Bound(p => p.UnitPrice).Title("Unit Price").Format("{0:C}");
         columns.Bound(p => p.UnitsInStock).Title("Units In Stock");
-        columns.Command(command => { command.Edit(); command.Destroy(); }).Title("Commands");
+        columns.Command(command => { command.Edit(); command.Destroy(); }).Title("Actions");
     })
-    .ToolBar(toolbar => toolbar.Create())
-    .Editable(editable => editable.Mode(GridEditMode.PopUp))
+    .ToolBar(toolbar =>
+    {
+        toolbar.Custom().Text("Add Product").HtmlAttributes(new { @class = "k-button k-button-icontext k-grid-add-custom" });
+    })
+    .Editable(editable => editable.Mode(GridEditMode.InLine))
     .Pageable()
     .Sortable()
-    .Filterable()
+    .Scrollable()
     .DataSource(dataSource => dataSource
         .Ajax()
-        .PageSize(20)
         .Model(model =>
         {
             model.Id(p => p.ProductID);
+            model.Field(p => p.CategoryID).DefaultValue(1);
+            model.Field(p => p.SupplierID).DefaultValue(1);
         })
         .Read(read => read.Action("Read", "Products"))
         .Create(create => create.Action("Create", "Products"))
@@ -29,3 +33,34 @@
         .Destroy(destroy => destroy.Action("Destroy", "Products"))
     )
 )
+
+<script>
+    $(document).ready(function () {
+        // Function to show the confirmation dialog
+        function showConfirmationDialog(callback) {
+            var confirmationDialog = $("<div></div>").kendoDialog({
+                width: "400px",
+                title: "Confirm",
+                content: "Are you sure you want to add a new product?",
+                actions: [
+                    { text: 'Yes', action: function () { callback(true); } },
+                    { text: 'No', action: function () { callback(false); } }
+                ],
+                modal: true,
+                visible: false
+            }).data("kendoDialog");
+            confirmationDialog.open();
+        }
+
+        // Event handler for the custom button
+        $(".k-grid-add-custom").on("click", function (e) {
+            e.preventDefault();
+            showConfirmationDialog(function (confirmed) {
+                if (confirmed) {
+                    var grid = $("#grid").data("kendoGrid");
+                    grid.addRow();
+                }
+            });
+        });
+    });
+</script>
