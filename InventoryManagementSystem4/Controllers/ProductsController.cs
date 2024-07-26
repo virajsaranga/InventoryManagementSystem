@@ -7,11 +7,13 @@ using InventoryManagementSystem4.DTOs;
 using Kendo.Mvc.Extensions;
 using Kendo.Mvc.UI;
 using System;
+using System.Data.Entity.Infrastructure;
 
 namespace InventoryManagementSystem4.Controllers
 {
     public class ProductsController : Controller
     {
+        
         private readonly InventoryDbContext db = new InventoryDbContext();
 
         // GET: Products
@@ -27,7 +29,7 @@ namespace InventoryManagementSystem4.Controllers
                 .ToList();
             ViewData["suppliers"] = suppliers;
 
-            return View(); // Load the view without passing initial data here
+            return View(); 
         }
 
         // GET: Products/Read
@@ -52,12 +54,12 @@ namespace InventoryManagementSystem4.Controllers
 
         // POST: Products/Create
         [HttpPost]
-        [ValidateAntiForgeryToken]
+        
         public ActionResult Create([DataSourceRequest] DataSourceRequest request, ProductDTO productDTO)
         {
-            try
+            if (ModelState.IsValid)
             {
-                if (ModelState.IsValid)
+                try
                 {
                     var product = new Product
                     {
@@ -73,24 +75,42 @@ namespace InventoryManagementSystem4.Controllers
                     db.SaveChanges();
 
                     productDTO.ProductID = product.ProductID;
+
+                    var category = db.Categories.Find(product.CategoryID);
+                    productDTO.CategoryName = category?.CategoryName ?? "Unknown Category";
+
+                    var supplier = db.Suppliers.Find(product.SupplierID);
+                    productDTO.SupplierName = supplier?.SupplierName ?? "Unknown Supplier";
+
                     return Json(new[] { productDTO }.ToDataSourceResult(request, ModelState));
                 }
-                else
+                catch (DbUpdateException ex)
                 {
-                    var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage);
-                    System.Diagnostics.Debug.WriteLine("Model validation failed: " + string.Join(", ", errors));
-                    return Json(new DataSourceResult { Errors = ModelState.SerializeErrors() });
+                    ModelState.AddModelError("", "Unable to save changes. Try again, and if the problem persists, see your system administrator.");
+                    System.Diagnostics.Debug.WriteLine($"DbUpdateException in Create: {ex.Message}");
+                    if (ex.InnerException != null)
+                        System.Diagnostics.Debug.WriteLine($"Inner exception: {ex.InnerException.Message}");
+                }
+                catch (Exception ex)
+                {
+                    ModelState.AddModelError("", "An error occurred while processing your request.");
+                    System.Diagnostics.Debug.WriteLine($"Exception in Create: {ex.Message}");
+                    if (ex.InnerException != null)
+                        System.Diagnostics.Debug.WriteLine($"Inner exception: {ex.InnerException.Message}");
+
+                    return Content($"Error: {ex.Message}\nStack Trace: {ex.StackTrace}");
                 }
             }
-            catch (Exception ex)
+
+          
+            return Json(new DataSourceResult
             {
-                System.Diagnostics.Debug.WriteLine("Exception in Create: " + ex.ToString());
-                return Json(new DataSourceResult { Errors = new[] { ex.Message } });
-            }
+                Errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).ToArray()
+            });
         }
         // POST: Products/Update
         [HttpPost]
-        [ValidateAntiForgeryToken]
+       
         public ActionResult Update([DataSourceRequest] DataSourceRequest request, ProductDTO productDTO)
         {
             if (ModelState.IsValid)
@@ -115,7 +135,7 @@ namespace InventoryManagementSystem4.Controllers
 
         // POST: Products/Destroy
         [HttpPost]
-        [ValidateAntiForgeryToken]
+       
         public ActionResult Destroy([DataSourceRequest] DataSourceRequest request, ProductDTO productDTO)
         {
             if (productDTO != null)
